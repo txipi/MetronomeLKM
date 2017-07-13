@@ -5,6 +5,7 @@
 #include <linux/ktime.h>
 #include <linux/sysrq.h>
 #include <linux/tty.h>
+#include <linux/time.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Pablo Garaizar");
@@ -46,7 +47,17 @@ static struct input_dev *dev;
 
 static void sysrq_handle_metronome(int key, struct tty_struct *tty)
 {
+	ktime_t now;
+	struct timespec ts;
+
 	metronome_status = (metronome_status) ? 0 : 1;
+	now = ktime_get();
+	getnstimeofday(&ts);
+	printk(KERN_INFO "metronome: New status (%d, %lluns <-> %.2lu:%.2lu:%.2lu:%.9lu).\n", metronome_status, ktime_to_ns(now), 
+		(ts.tv_sec / 3600) % (24),
+		(ts.tv_sec / 60) % (60),
+		ts.tv_sec % 60,
+		ts.tv_nsec);
 }
 
 static struct sysrq_key_op sysrq_metronome_op = {
@@ -60,6 +71,7 @@ enum hrtimer_restart metronome_hrt_callback(struct hrtimer *timer)
 {
 	ktime_t now, t;
 	unsigned long missed;
+        struct timespec ts;
 
 	now = ktime_get();
 	t = ktime_set(0, metronome_delay);
@@ -74,9 +86,15 @@ enum hrtimer_restart metronome_hrt_callback(struct hrtimer *timer)
 	{
 		input_report_key(dev, metronome_key, 1);
 		input_sync(dev);
+		now = ktime_get();
+	        getnstimeofday(&ts);
 		input_report_key(dev, metronome_key, 0);
 		input_sync(dev);
-		printk(KERN_INFO "metronome: Key event (%d, %lluns).\n", metronome_key, ktime_to_ns(now));
+		printk(KERN_INFO "metronome: Key event (%d, %lluns <-> %.2lu:%.2lu:%.2lu:%.9lu).\n", metronome_key, ktime_to_ns(now),
+        	        (ts.tv_sec / 3600) % (24),
+	                (ts.tv_sec / 60) % (60),
+        	        ts.tv_sec % 60,
+                	ts.tv_nsec);
 	}
 
 	return HRTIMER_RESTART;
@@ -100,9 +118,15 @@ enum hrtimer_restart metronome_hrt_callback2(struct hrtimer *timer)
 	{
 		input_report_key(dev, metronome_key2, 1);
 		input_sync(dev);
+		now = ktime_get();
+	        getnstimeofday(&ts);
 		input_report_key(dev, metronome_key2, 0);
 		input_sync(dev);
-		printk(KERN_INFO "metronome: Key event 2 (%d, %lluns).\n", metronome_key2, ktime_to_ns(now));
+		printk(KERN_INFO "metronome: Key event (%d, %lluns <-> %.2lu:%.2lu:%.2lu:%.9lu).\n", metronome_key, ktime_to_ns(now),
+        	        (ts.tv_sec / 3600) % (24),
+	                (ts.tv_sec / 60) % (60),
+        	        ts.tv_sec % 60,
+                	ts.tv_nsec);
 	}
 
 	return HRTIMER_RESTART;
@@ -126,9 +150,15 @@ enum hrtimer_restart metronome_hrt_callback3(struct hrtimer *timer)
 	{
 		input_report_key(dev, metronome_key3, 1);
 		input_sync(dev);
+		now = ktime_get();
+	        getnstimeofday(&ts);
 		input_report_key(dev, metronome_key3, 0);
 		input_sync(dev);
-		printk(KERN_INFO "metronome: Key event 3 (%d, %lluns).\n", metronome_key3, ktime_to_ns(now));
+		printk(KERN_INFO "metronome: Key event (%d, %lluns <-> %.2lu:%.2lu:%.2lu:%.9lu).\n", metronome_key, ktime_to_ns(now),
+        	        (ts.tv_sec / 3600) % (24),
+	                (ts.tv_sec / 60) % (60),
+        	        ts.tv_sec % 60,
+                	ts.tv_nsec);
 	}
 
 	return HRTIMER_RESTART;
